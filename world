@@ -1,0 +1,108 @@
+/**
+ * @author miramyllyla
+ *
+ */
+class World(floorWidth: Int, floorHeight: Int) {
+
+  object Wall extends Square {
+
+    /** `None` since there is never snake in a wall square */
+    val snake = None
+
+    /** `false` since there is a wall */
+    val isEmpty = false
+
+    /** `true` since a wall is an unpassable obstacle */
+    val isUnpassable = true
+
+    /**
+     * Fails to add snake to the square. Instead, the snake collides
+     * with the wall and is destroyed.
+     */   
+  def addSnake(arrivee: Snake) = {
+    arrivee.destroy()
+    false
+  }
+
+    /** Does nothing, since there is no snake/food to remove in a wall square. */
+    def clear() = {
+      // no action
+    }
+
+  }
+
+  class Floor extends Square {
+    
+  private var occupant: Option[Snake] = None    //tämä ottaa Optioniin sisälle Sonian tekemän Snaken
+  
+  /** 'false' since a floor is not entirely unpassable */
+  val isUnpassable = false
+  
+  /** Returns the snake occupying the square, wrapped in an Option, or None, 
+    * if there is no snake in the square. */
+  def snake = this.occupant
+  
+  /** Returns 'true' if the floor square has no snake in it, 'false' otherwise. */
+  def isEmpty = occupant == None
+  
+  /** Tells if there is an apple/food in it. */
+  
+  def hasTreat: Boolean
+  
+  /** Removes the apple/food from the square when snake goes in it. */
+  def clear() = {
+    this.occupant = None
+
+  }
+
+  trait Square {
+  /** Returns 'true' if the square is empty of all obstacles, 'false' otherwise. */
+  def isEmpty: Boolean
+ 
+   
+  /** Returns the snake occupying the square, wrapped in an Option, or None, 
+    * if there is no snake in the square. */
+  def snake: Option[Snake]
+ 
+   
+  /** Returns 'true' if the square contains a permanent, unpassable obstacle = wall, 'false' otherwise. */
+  def isUnpassable: Boolean
+ 
+   
+  /** Removes the apple/food from the square when snake goes in it. */
+  def clear()
+ 
+   
+  /** Adds the snake to the square, if possible. If there is something
+    * already in the square (apple, wall), snake dies and game ends.
+    */
+  def addSnake(arrivee: Snake): Boolean
+  
+  def hasTreat: Boolean
+  
+  }
+  
+   def addSnake(arrivee: Snake) = {              //Sonian Snake tähän
+    val arrivedOK = this.occupant.isEmpty
+    this.occupant.foreach( _.destroy() )
+    this.occupant = this.occupant.orElse(Some(arrivee))
+    arrivedOK
+  }
+
+  /**Three different worlds that extend the class World. They works as a level of the game as well,
+   *world1 being the easiest to pass, world3 the hardest.
+   */
+   
+  object world1 extends World {
+    ???
+  }
+
+  object world2 {
+    ???
+  }
+
+  object world3 {
+    ???
+  }
+
+}
