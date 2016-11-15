@@ -1,0 +1,174 @@
+/**
+ * @author miramyllyla
+ *
+ */
+import scala.collection.mutable.Buffer
+import scala.util.Random
+import scala.reflect.ClassTag
+
+class Snake {
+
+}
+
+trait Square {
+  /** Returns 'true' if the square is empty of all obstacles, 'false' otherwise. */
+  def isEmpty: Boolean
+
+  /**
+   * Returns the snake occupying the square, wrapped in an Option, or None,
+   * if there is no snake in the square.
+   */
+  def snake: Option[Snake]
+
+  /** Returns 'true' if the square contains a permanent, unpassable obstacle = wall, 'false' otherwise. */
+  def isUnpassable: Boolean
+
+  /** Tells if there is an apple/food in it. */
+
+  def hasTreat: Boolean = treat
+  private var treat = false
+
+  def addTreat() = treat = false
+
+  /** Removes the apple/food from the square when snake goes in it. */
+  def clear()
+
+  /**
+   * Adds the snake to the square, if possible. If there is something
+   * already in the square (apple, wall), snake dies and game ends.
+   */
+  /**
+   * def addSnake(arrivee: Snake): Boolean = {
+   * false
+   * } tämä vissiin tarpeeton?
+   */
+
+}
+
+class World(floorWidth: Int, floorHeight: Int) {
+
+  val contents: Array[Array[Square]] = Array.ofDim(floorWidth, floorHeight)
+
+  val size = floorWidth * floorHeight
+  val width = floorWidth
+  val height = floorHeight
+
+  def start = {
+    for (x <- 0 until this.floorWidth-1 ; y <- 0 until this.floorHeight-1) {
+      val newSquare = if (x > 0 && x < this.floorWidth - 1 && y > 0 && y < this.floorHeight - 1)
+        new Floor else Wall
+      this.contents(x)(y) = newSquare
+    }
+  }
+  start
+  override def toString: String = {        // tämä jatko riville 74 asti on testiä varten
+    var s = ""
+    for (x <- 0 until this.floorWidth; y <- 0 until this.floorHeight) {
+      val newSquare = if (x > 0 && x < this.floorWidth - 1 && y > 0 && y < this.floorHeight - 1)
+        new Floor else Wall
+     s = s + " " + (this.contents(x)(y).isUnpassable).toString() + " " +  
+         (this.contents(x)(y).hasTreat).toString()
+    }
+    s
+  }
+}
+
+object Wall extends Square {
+
+  /** `None` since there is never snake in a wall square */
+  val snake = None
+
+  /** `false` since there is a wall */
+  val isEmpty = false
+
+  /** `true` since a wall is an unpassable obstacle */
+  val isUnpassable = true
+
+  /**
+   * Fails to add snake to the square. Instead, the snake collides
+   * with the wall and is destroyed.
+   */
+  def addSnake: Boolean = false
+
+  /** Does nothing, since there is no snake/food to remove in a wall square. */
+  def clear() = {
+    // no action
+  }
+
+}
+
+class Floor extends Square {
+
+  private var occupant: Option[Snake] = None //tämä ottaa Optioniin sisälle Sonian tekemän Snaken
+
+  /** 'false' since a floor isn't unpassable */
+  val isUnpassable = false
+
+  /**
+   * Returns the snake occupying the square, wrapped in an Option, or None,
+   * if there is no snake in the square.
+   */
+  def snake = this.occupant
+
+  /** Returns 'true' if the floor square has no snake in it, 'false' otherwise. */
+  def isEmpty = occupant == None
+
+  /** Removes the apple/food from the square when snake goes in it. */
+  def clear() = {
+    this.occupant = None
+
+    def addSnake(arrivee: Snake) = { //Sonian Snake tähän
+      val arrivedOK = this.occupant.isEmpty
+      if (this.occupant.contains(Some)) this.clear() //omppu katoaa
+      this.occupant = this.occupant.orElse(Some(arrivee))
+      arrivedOK
+    }
+
+  }
+
+  /**
+   * Three different worlds that extend the class World. They works as a level of the game as well,
+   * world1 being the easiest to pass, world3 the hardest.
+   */
+
+  object world1 extends World(10, 10) {
+    override def start = {
+      for (x <- 0 until this.width; y <- 0 until this.height) {
+        val newSquare = if (x > 0 && x < this.width - 1 && y > 0 && y < this.height - 1)
+          new Floor else Wall
+        this.contents(x)(y) = newSquare
+      }
+    }
+    // addSnake: (1,1)
+    var everySecond: Boolean = true
+    for (x <- 3 until this.width by 2) { //käy joka toisen läpi
+      for (y <- 1 until this.height - 2) { // jätetään rako jotta mato pääsee liikkumaan
+        if (everySecond) this.contents(x)(y) = Wall
+        else this.contents(x)(y + 1) = Wall
+      }
+      everySecond = !everySecond
+    }
+    // adds 5 treats by random
+    val generator = new Random
+    var treatCount = 0
+    var loopCount = 0
+    while (treatCount < 5 && loopCount < 100) {
+      var x = generator.nextInt(this.width)
+      var y = generator.nextInt(this.height)
+      if (this.contents(x)(y).isEmpty && !this.contents(x)(y).isUnpassable) {
+        val newS: Square = this.contents(x)(y)
+        newS.addTreat()
+        treatCount + 1
+      }
+      loopCount + 1
+    }
+  }
+
+  object world2 extends World(???, ???) {
+    ???
+  }
+
+  object world3 extends World(???, ???) {
+    ???
+  }
+}
